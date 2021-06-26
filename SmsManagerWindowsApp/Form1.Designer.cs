@@ -62,6 +62,7 @@ namespace SmsManagerWindowsApp
             // 
             // StopReadServiceButton
             // 
+            this.StopReadServiceButton.Enabled = false;
             this.StopReadServiceButton.Location = new System.Drawing.Point(6, 51);
             this.StopReadServiceButton.Name = "StopReadServiceButton";
             this.StopReadServiceButton.Size = new System.Drawing.Size(188, 23);
