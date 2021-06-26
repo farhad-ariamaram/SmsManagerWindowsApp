@@ -27,19 +27,19 @@ namespace SmsManagerWindowsApp
 
             _sampleTimer = new System.Timers.Timer
             {
-                Interval = 5000
+                Interval = 900000
             };
             _sampleTimer.Elapsed += DoWorkAndUpdateUIAsync;
         }
 
         private async void DoWorkAndUpdateUIAsync(object sender, EventArgs e)
         {
-            //var result = await DoWorkAsync();
-            //ReadSmsServiceStatusLabel.Text = result;
-            
+            var res = await DoWorkAsync();
+            ReaderServiceErrorTextBox.Text = res;
+
         }
 
-        private async Task DoWorkAsync()
+        private async Task<string> DoWorkAsync()
         {
             try
             {
@@ -178,18 +178,23 @@ namespace SmsManagerWindowsApp
                 serialPort.WriteLine("AT+CMGD=1,3" + System.Environment.NewLine);
                 Thread.Sleep(2000);
 
+                serialPort.Close();
 
+                return "OK";
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                //LogErrors("Error On Openning Port" + Environment.NewLine);
-                //ResetApp();
+                 return e.Message;
             }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            foreach (string item in SerialPort.GetPortNames())
+            {
+                PortsTextBox.Text += item + Environment.NewLine;
+            }
+            
         }
 
         private void ReadSmsServiceButton_Click(object sender, EventArgs e)

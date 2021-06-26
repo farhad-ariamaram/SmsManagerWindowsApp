@@ -34,7 +34,12 @@ namespace SmsManagerWindowsApp
             this.StopReadServiceButton = new System.Windows.Forms.Button();
             this.ReadSmsServiceStatusLabel = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.Label4 = new System.Windows.Forms.Label();
+            this.ReaderServiceErrorTextBox = new System.Windows.Forms.TextBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.PortsTextBox = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // ReadSmsServiceButton
@@ -49,13 +54,15 @@ namespace SmsManagerWindowsApp
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.ReaderServiceErrorTextBox);
+            this.groupBox1.Controls.Add(this.Label4);
             this.groupBox1.Controls.Add(this.StopReadServiceButton);
             this.groupBox1.Controls.Add(this.ReadSmsServiceStatusLabel);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.ReadSmsServiceButton);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(200, 129);
+            this.groupBox1.Size = new System.Drawing.Size(200, 199);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "سرویس خواندن اس ام اس";
@@ -89,17 +96,55 @@ namespace SmsManagerWindowsApp
             this.label1.TabIndex = 3;
             this.label1.Text = "وضعیت اجرا";
             // 
+            // Label4
+            // 
+            this.Label4.AutoSize = true;
+            this.Label4.Location = new System.Drawing.Point(150, 134);
+            this.Label4.Name = "Label4";
+            this.Label4.Size = new System.Drawing.Size(27, 15);
+            this.Label4.TabIndex = 4;
+            this.Label4.Text = "خطا";
+            // 
+            // ReaderServiceErrorTextBox
+            // 
+            this.ReaderServiceErrorTextBox.Location = new System.Drawing.Point(6, 126);
+            this.ReaderServiceErrorTextBox.Multiline = true;
+            this.ReaderServiceErrorTextBox.Name = "ReaderServiceErrorTextBox";
+            this.ReaderServiceErrorTextBox.Size = new System.Drawing.Size(100, 67);
+            this.ReaderServiceErrorTextBox.TabIndex = 3;
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.PortsTextBox);
+            this.groupBox2.Location = new System.Drawing.Point(218, 12);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(200, 199);
+            this.groupBox2.TabIndex = 3;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "پورت های موجود";
+            // 
+            // PortsTextBox
+            // 
+            this.PortsTextBox.Location = new System.Drawing.Point(6, 21);
+            this.PortsTextBox.Multiline = true;
+            this.PortsTextBox.Name = "PortsTextBox";
+            this.PortsTextBox.Size = new System.Drawing.Size(188, 172);
+            this.PortsTextBox.TabIndex = 0;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -111,6 +156,10 @@ namespace SmsManagerWindowsApp
         private System.Windows.Forms.Label ReadSmsServiceStatusLabel;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button StopReadServiceButton;
+        private System.Windows.Forms.TextBox ReaderServiceErrorTextBox;
+        private System.Windows.Forms.Label Label4;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.TextBox PortsTextBox;
     }
 }
 
