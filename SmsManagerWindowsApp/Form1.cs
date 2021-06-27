@@ -241,6 +241,11 @@ namespace SmsManagerWindowsApp
                     }
                 }
 
+                Invoke(new Action(() =>
+                {
+                    ReaderServiceCurrentOpLabel.Text = "Finish";
+                }));
+
                 serialPort.Close();
 
                 Flag = true;
@@ -258,7 +263,7 @@ namespace SmsManagerWindowsApp
                 {
                     serialPort.Close();
                 }
-                
+
                 Flag = true;
             }
         }
@@ -317,12 +322,17 @@ namespace SmsManagerWindowsApp
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(SentPhoneEditText.Text) ||
-                !string.IsNullOrEmpty(SentPhoneEditText.Text) ||
-                !string.IsNullOrWhiteSpace(SentBodyEditText.Text) ||
-                !string.IsNullOrEmpty(SentBodyEditText.Text) ||
-                SentPhoneEditText.Text.StartsWith("+98") ||
-                SentPhoneEditText.Text=="" || SentBodyEditText.Text=="")
+            if (string.IsNullOrWhiteSpace(SentPhoneEditText.Text) ||
+                string.IsNullOrEmpty(SentPhoneEditText.Text) ||
+                string.IsNullOrWhiteSpace(SentBodyEditText.Text) ||
+                string.IsNullOrEmpty(SentBodyEditText.Text) ||
+                !SentPhoneEditText.Text.StartsWith("+98") ||
+                SentPhoneEditText.Text == "" || SentBodyEditText.Text == "" || SentPhoneEditText.Text.Length != 13)
+            {
+                MessageBox.Show("متن پیام و یا  شماره نمیتواند خالی باشد. همچنین شماره باید با +98 آغاز شود");
+
+            }
+            else
             {
                 TblSmsSent tblSmsSent = new TblSmsSent
                 {
@@ -336,12 +346,11 @@ namespace SmsManagerWindowsApp
 
                 Invoke(new Action(() =>
                 {
-                    QueueNoLabel.Text = (int.Parse(QueueNoLabel.Text)+1)+"";
+                    QueueNoLabel.Text = (int.Parse(QueueNoLabel.Text) + 1) + "";
                 }));
-            }
-            else
-            {
-                MessageBox.Show("متن پیام و یا  شماره نمیتواند خالی باشد. همچنین شماره باید با +98 آغاز شود");
+
+                SentBodyEditText.Text = "";
+                SentPhoneEditText.Text = "+98";
             }
 
 
