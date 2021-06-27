@@ -18,6 +18,7 @@ namespace SmsManagerWindowsApp
     {
         private readonly System.Timers.Timer _sampleTimer;
         private readonly EmployDBContext _context;
+        static bool Flag = true;
 
         public Form1()
         {
@@ -27,24 +28,32 @@ namespace SmsManagerWindowsApp
 
             _sampleTimer = new System.Timers.Timer
             {
-                Interval = 900000
+                Interval = 5000
             };
             _sampleTimer.Elapsed += DoWorkAndUpdateUIAsync;
         }
 
         private async void DoWorkAndUpdateUIAsync(object sender, EventArgs e)
         {
-            var res = await DoWorkAsync();
-            ReaderServiceErrorTextBox.Text = res;
+            if (Flag)
+            {
+                var res = await DoWorkAsync();
 
+                Invoke(new Action(() =>
+                {
+                    ReaderServiceErrorTextBox.Text = res;
+                }));
+            }
         }
 
         private async Task<string> DoWorkAsync()
         {
+            Flag = false;
+            SerialPort serialPort = null;
             try
             {
                 string portNo;
-                SerialPort serialPort = new SerialPort();
+                serialPort = new SerialPort();
 
                 //Get port name from "app.config" file
                 portNo = System.Configuration.ConfigurationManager.AppSettings["MP"];
@@ -59,11 +68,19 @@ namespace SmsManagerWindowsApp
                     serialPort.Open();
                 }
 
-                //Change read language to UCS2 text
+                //Change read language to UCS2 text 
+                Invoke(new Action(() =>
+                {
+                    ReaderServiceCurrentOpLabel.Text = "Change read language to UCS2";
+                }));
                 serialPort.WriteLine("AT+CSCS=\"UCS2\"");
                 Thread.Sleep(2000);
 
                 //Read received messages
+                Invoke(new Action(() =>
+                {
+                    ReaderServiceCurrentOpLabel.Text = "Read received messages";
+                }));
                 string output = "";
                 serialPort.WriteLine("AT" + System.Environment.NewLine);
                 Thread.Sleep(2000);
@@ -107,6 +124,10 @@ namespace SmsManagerWindowsApp
                         Msg = System.Text.RegularExpressions.Regex.Unescape(sb.ToString()).Replace("\"", string.Empty);
 
                         //Insert received message to "TblSmsReceived" of database
+                        Invoke(new Action(() =>
+                        {
+                            ReaderServiceCurrentOpLabel.Text = "Insert received message to DB";
+                        }));
                         TblSmsReceived smsReceived = new TblSmsReceived()
                         {
                             Phone = phone,
@@ -122,6 +143,10 @@ namespace SmsManagerWindowsApp
                         //1 => registeration
                         if (Msg.Equals("1") || Msg.Equals("۱"))
                         {
+                            Invoke(new Action(() =>
+                            {
+                                ReaderServiceCurrentOpLabel.Text = "Make msg for registeration";
+                            }));
                             //Generating a hash key from sender phone number and current date and time for user registeration ID
                             string HashId = null;
                             HashId = Utils.CreateMD5(phone + DateTime.Now.Ticks);
@@ -171,6 +196,10 @@ namespace SmsManagerWindowsApp
                 }
 
                 //Delete all read messages (untouch unreads)
+                Invoke(new Action(() =>
+                {
+                    ReaderServiceCurrentOpLabel.Text = "Delete Read Messages";
+                }));
                 serialPort.WriteLine("AT" + System.Environment.NewLine);
                 Thread.Sleep(2000);
                 serialPort.WriteLine("AT+CMGF=1\r" + System.Environment.NewLine);
@@ -178,13 +207,59 @@ namespace SmsManagerWindowsApp
                 serialPort.WriteLine("AT+CMGD=1,3" + System.Environment.NewLine);
                 Thread.Sleep(2000);
 
+                //Send messages base on queue 
+                Invoke(new Action(() =>
+                {
+                    ReaderServiceCurrentOpLabel.Text = "Sent Messages from Queue";
+                }));
+                var queue = await _context.TblSmsSents.Where(a => a.IsRead == false).ToListAsync();
+
+                Invoke(new Action(() =>
+                {
+                    QueueNoLabel.Text = queue.Count + "";
+                }));
+
+                if (queue.Any())
+                {
+                    foreach (var item in queue)
+                    {
+                        string sentmsg = null;
+                        serialPort.WriteLine("AT+CMGF=1");
+                        Thread.Sleep(1000);
+                        serialPort.WriteLine("AT+CSCS=\"HEX\"");
+                        Thread.Sleep(3000);
+                        serialPort.WriteLine("AT+CSMP=17,167,0,8");
+                        Thread.Sleep(3000);
+                        serialPort.WriteLine("AT+CMGS=\"" + item.Phone + "\"");
+                        Thread.Sleep(3000);
+                        sentmsg = item.Message;
+                        serialPort.Write(Utils.StringToHex(sentmsg) + '\x001a');
+                        Thread.Sleep(5000);
+                        var currentMsg = await _context.TblSmsSents.FindAsync(item.Id);
+                        currentMsg.IsRead = true;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
                 serialPort.Close();
 
-                return "OK";
+                Flag = true;
+
+                return "بدون خطا";
             }
             catch (Exception e)
             {
-                 return e.Message;
+                Flag = true;
+                return e.Message;
+            }
+            finally
+            {
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Close();
+                }
+                
+                Flag = true;
             }
         }
 
@@ -194,7 +269,7 @@ namespace SmsManagerWindowsApp
             {
                 PortsTextBox.Text += item + Environment.NewLine;
             }
-            
+
         }
 
         private void ReadSmsServiceButton_Click(object sender, EventArgs e)
@@ -238,6 +313,38 @@ namespace SmsManagerWindowsApp
                 text = sr.ReadToEnd();
             }
             return text;
+        }
+
+        private async void button1_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(SentPhoneEditText.Text) ||
+                !string.IsNullOrEmpty(SentPhoneEditText.Text) ||
+                !string.IsNullOrWhiteSpace(SentBodyEditText.Text) ||
+                !string.IsNullOrEmpty(SentBodyEditText.Text) ||
+                SentPhoneEditText.Text.StartsWith("+98") ||
+                SentPhoneEditText.Text=="" || SentBodyEditText.Text=="")
+            {
+                TblSmsSent tblSmsSent = new TblSmsSent
+                {
+                    Phone = SentPhoneEditText.Text,
+                    Message = SentBodyEditText.Text,
+                    Date = DateTime.Now,
+                    IsRead = false
+                };
+                await _context.TblSmsSents.AddAsync(tblSmsSent);
+                await _context.SaveChangesAsync();
+
+                Invoke(new Action(() =>
+                {
+                    QueueNoLabel.Text = (int.Parse(QueueNoLabel.Text)+1)+"";
+                }));
+            }
+            else
+            {
+                MessageBox.Show("متن پیام و یا  شماره نمیتواند خالی باشد. همچنین شماره باید با +98 آغاز شود");
+            }
+
+
         }
     }
 }
